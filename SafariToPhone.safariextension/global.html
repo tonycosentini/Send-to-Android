@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<script>
+// Register for the validate and command events.
+safari.application.addEventListener("command", performCommand, false);
+safari.application.addEventListener("validate", validateCommand, false);
+
+var baseUrl = 'http://chrometophone.appspot.com/send';
+var req = new XMLHttpRequest();
+
+function performCommand(event)
+{
+  alert("perform!")
+  if (event.command !== "send")
+    return;
+    
+  sendToPhone(event.target.browserWindow.activeTab.title, event.target.browserWindow.activeTab.url, null); 
+}
+
+function validateCommand(event)
+{
+	// You should always check the command.
+	if (event.command !== "send")
+		return;
+
+	// Disable the target if the current tab has no URL.
+	event.target.disabled = !event.target.browserWindow.activeTab.url;
+}
+
+function loadHandler() {
+  // document.getElementById('msg').innerHTML = chrome.i18n.getMessage('sending_message');
+  // document.getElementById('about').innerHTML = chrome.i18n.getMessage('about_message');
+
+  // chrome.tabs.getSelected(null, function(tab) {
+  //   if (tab.url.indexOf('http:') == 0 ||
+  //       tab.url.indexOf('https:') == 0) {
+  //     chrome.tabs.executeScript(null, {file: "content_script.js"});
+  //   } else {
+  //     document.getElementById('msg').innerHTML = chrome.i18n.getMessage('invalid_scheme_message');
+  //   }
+  // });
+}
+
+function sendToPhone(title, url, selection) {
+  var sendUrl = baseUrl + '?title=' + encodeURIComponent(title) +
+      '&url=' + encodeURIComponent(url) + '&sel=' + encodeURIComponent(selection);
+  req.open('GET', sendUrl, true);
+  req.setRequestHeader('X-Extension', 'true');  // XSRF protector
+
+  var theBody = document.body;
+  var element = document.createElement("p");
+  element.id = "status";
+  element.style = "float:right; color:red";
+  element.textContent = "Waiting...";
+  theBody.insertBefore(element, theBody.firstChild);
+
+  req.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if (req.status == 200) {
+        if (req.responseText.substring(0, 2) == 'OK') {
+          //TODO: Figure out message stuff.
+          // document.getElementById('msg').innerHTML = chrome.i18n.getMessage('sent_message');
+        } else {  
+          // most likely login, handle in new tab
+          //document.getElementById('msg').innerHTML =
+          // chrome.i18n.getMessage('login_required_message');
+          // chrome.tabs.create({url: sendUrl});
+          var newTab = safari.application.openBrowserWindow().activeTab;
+          newTab.url = sendUrl;
+        }
+      } else { 
+        alert(req.responseText);
+        // document.getElementById('msg').innerHTML =  
+            // chrome.i18n.getMessage('error_sending_message', req.responseText);
+      }
+    }
+  }
+  
+  req.send(null);
+}
+
+// chrome.extension.onConnect.addListener(function(port) {
+//   var tab = port.sender.tab;
+//   // This will get called by the content script. We go through
+//   // these hoops to get the optional text selection.
+//   port.onMessage.addListener(function(info) {
+//     var max_length = 256;
+//     if (info.selection.length > max_length) {
+//       info.selection = info.selection.substring(0, max_length);
+//     }
+//     sendToPhone(info.title, tab.url, info.selection);
+//   });
+// });
+</script>
