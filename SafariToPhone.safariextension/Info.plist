@@ -5,7 +5,7 @@
 	<key>Author</key>
 	<string>Tony Cosentini</string>
 	<key>CFBundleDisplayName</key>
-	<string>Send To Android</string>
+	<string>SendToAndroid</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.tonycosentini.sendtoandroid</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -37,8 +37,15 @@
 	<key>Content</key>
 	<dict>
 		<key>Scripts</key>
-		<dict/>
+		<dict>
+			<key>End</key>
+			<array>
+				<string>content.js</string>
+			</array>
+		</dict>
 	</dict>
+	<key>Description</key>
+	<string>Null</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
@@ -51,5 +58,7 @@
 			<string>All</string>
 		</dict>
 	</dict>
+	<key>Website</key>
+	<string>http://github.com/tonycosentini/Send-to-Android</string>
 </dict>
 </plist>

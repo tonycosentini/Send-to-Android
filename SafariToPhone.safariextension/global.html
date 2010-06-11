@@ -9,11 +9,10 @@ var req = new XMLHttpRequest();
 
 function performCommand(event)
 {
-  alert("perform!")
   if (event.command !== "send")
     return;
     
-  sendToPhone(event.target.browserWindow.activeTab.title, event.target.browserWindow.activeTab.url, null); 
+  sendToPhone(event, event.target.browserWindow.activeTab.title, event.target.browserWindow.activeTab.url, null); 
 }
 
 function validateCommand(event)
@@ -26,21 +25,7 @@ function validateCommand(event)
 	event.target.disabled = !event.target.browserWindow.activeTab.url;
 }
 
-function loadHandler() {
-  // document.getElementById('msg').innerHTML = chrome.i18n.getMessage('sending_message');
-  // document.getElementById('about').innerHTML = chrome.i18n.getMessage('about_message');
-
-  // chrome.tabs.getSelected(null, function(tab) {
-  //   if (tab.url.indexOf('http:') == 0 ||
-  //       tab.url.indexOf('https:') == 0) {
-  //     chrome.tabs.executeScript(null, {file: "content_script.js"});
-  //   } else {
-  //     document.getElementById('msg').innerHTML = chrome.i18n.getMessage('invalid_scheme_message');
-  //   }
-  // });
-}
-
-function sendToPhone(title, url, selection) {
+function sendToPhone(event, title, url, selection) {
   var sendUrl = baseUrl + '?title=' + encodeURIComponent(title) +
       '&url=' + encodeURIComponent(url) + '&sel=' + encodeURIComponent(selection);
   req.open('GET', sendUrl, true);
@@ -52,6 +37,8 @@ function sendToPhone(title, url, selection) {
   element.style = "float:right; color:red";
   element.textContent = "Waiting...";
   theBody.insertBefore(element, theBody.firstChild);
+  
+  safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("send");
 
   req.onreadystatechange = function() {
     if (this.readyState == 4) {
@@ -59,6 +46,8 @@ function sendToPhone(title, url, selection) {
         if (req.responseText.substring(0, 2) == 'OK') {
           //TODO: Figure out message stuff.
           // document.getElementById('msg').innerHTML = chrome.i18n.getMessage('sent_message');
+          // event.target.browserWindow.activeTab.getElementById('tag-id').innerHTML = '<ol><li>html data</li></ol>';
+          safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("completed");
         } else {  
           // most likely login, handle in new tab
           //document.getElementById('msg').innerHTML =
@@ -67,8 +56,9 @@ function sendToPhone(title, url, selection) {
           var newTab = safari.application.openBrowserWindow().activeTab;
           newTab.url = sendUrl;
         }
-      } else { 
+      } else {         
         alert(req.responseText);
+        safari.application.activeBrowserWindow.activeTab.page.dispatchMessage("error");
         // document.getElementById('msg').innerHTML =  
             // chrome.i18n.getMessage('error_sending_message', req.responseText);
       }
